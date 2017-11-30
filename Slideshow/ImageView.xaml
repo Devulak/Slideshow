@@ -1,0 +1,15 @@
+﻿<Window x:Class="Slideshow.ImageView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
+        xmlns:local="clr-namespace:Slideshow"
+        mc:Ignorable="d"
+        KeyDown="Grid_KeyDown" Title="Looper" Height="300" Width="300" ResizeMode="NoResize" WindowStyle="None">
+    <Grid>
+        <Rectangle Fill="#FF121212" Margin="0" Stroke="Black"/>
+        <Image Name="Image"/>
+        <Image Name="Animation"/>
+    </Grid>
+</Window>
