@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -16,6 +17,18 @@ namespace Slideshow
         public Dashboard()
         {
             InitializeComponent();
+
+            // For debugging, reset the user input
+            if (Debugger.IsAttached)
+            {
+                Properties.Settings.Default.Reset();
+            }
+
+            // If the initial path hasn't been set, do so
+            if (Properties.Settings.Default.Path == "")
+            {
+                Properties.Settings.Default.Path = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            }
 
             Path.Text = Properties.Settings.Default.Path;
             Time.Text = Properties.Settings.Default.Timer.ToString();
