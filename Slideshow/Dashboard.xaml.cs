@@ -14,17 +14,38 @@ namespace Slideshow
     /// </summary>
     public partial class Dashboard : Window
     {
+        public Dashboard(string[] args)
+        {
+            InitializeComponent();
+            if (args.Length != 0)
+            {
+                FileInfo f = new FileInfo(args[0]);
+                Startup(f.DirectoryName);
+            }
+            else
+            {
+                Startup();
+            }
+        }
+
         public Dashboard()
         {
             InitializeComponent();
+            Startup();
+        }
 
+        private void Startup()
+        {
             // If the initial path hasn't been set, do so
             if (Properties.Settings.Default.Path == "")
             {
                 Properties.Settings.Default.Path = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
             }
-
-            Path.Text = Properties.Settings.Default.Path;
+            Startup(Properties.Settings.Default.Path);
+        }
+        private void Startup(string path)
+        {
+            Path.Text = path;
             Time.Text = Properties.Settings.Default.Timer.ToString();
             Randomized.IsChecked = Properties.Settings.Default.Randomized;
         }
@@ -35,7 +56,23 @@ namespace Slideshow
             
             try // to set the path for the folder
             {
-                imgControl.FileEntries = Directory.GetFiles(Path.Text);
+                // TODO: fix this "hack"
+                string[] directoryFiles = Directory.GetFiles(Path.Text);
+                List<string> listOfFiles = new List<string>();
+                foreach (string file in directoryFiles)
+                {
+                    FileInfo f = new FileInfo(file);
+                    string[] acceptedFileTypes = { "jpg", "jpeg", "png", "gif" };
+                    foreach (string fileType in acceptedFileTypes)
+                    {
+                        if (f.Extension == fileType)
+                        {
+                            listOfFiles.Add(file);
+                            return;
+                        }
+                    }
+                }
+                imgControl.FileEntries = listOfFiles.ToArray();
             }
             catch (DirectoryNotFoundException) // if the given folder doesn't exists
             {

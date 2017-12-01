@@ -15,14 +15,17 @@ namespace Slideshow
     /// </summary>
     public partial class App : Application
     {
-        // Only used for debugging so the reset doesn't happen every instance of the dashboard window
-        public App()
+        void App_Startup(object sender, StartupEventArgs e)
         {
             // For debugging, reset the user input
             if (Debugger.IsAttached)
             {
                 Slideshow.Properties.Settings.Default.Reset();
             }
+
+            string[] args = e.Args;
+            Dashboard dashboard = new Dashboard(args);
+            dashboard.Show();
         }
     }
 }
