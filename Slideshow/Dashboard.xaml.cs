@@ -18,12 +18,6 @@ namespace Slideshow
         {
             InitializeComponent();
 
-            // For debugging, reset the user input
-            if (Debugger.IsAttached)
-            {
-                Properties.Settings.Default.Reset();
-            }
-
             // If the initial path hasn't been set, do so
             if (Properties.Settings.Default.Path == "")
             {
@@ -37,11 +31,22 @@ namespace Slideshow
 
         private void StartView(object sender, RoutedEventArgs e)
         {
+            ImageController imgControl = ImageController.Instance;
+            
+            try // to set the path for the folder
+            {
+                imgControl.FileEntries = Directory.GetFiles(Path.Text);
+            }
+            catch (DirectoryNotFoundException) // if the given folder doesn't exists
+            {
+                ErrorMessage.Content = "Could not find given path!";
+                return;
+            }
+
             Properties.Settings.Default.Path = Path.Text;
             Properties.Settings.Default.Timer = Int32.Parse(Time.Text);
             Properties.Settings.Default.Randomized = (bool)Randomized.IsChecked;
             Properties.Settings.Default.Save();
-            Console.WriteLine(Randomized.IsChecked);
 
 
             Screen[] screens = Screen.AllScreens;
@@ -62,12 +67,9 @@ namespace Slideshow
                 imageView.WindowState = WindowState.Maximized;
             }
 
-            ImageController imgControl = ImageController.Instance;
-
             imgControl.Reset();
             imgControl.Timer = Int32.Parse(Time.Text);
 
-            imgControl.FileEntries = Directory.GetFiles(Path.Text);
             if (Properties.Settings.Default.Randomized)
             {
                 imgControl.FileEntries = Shuffle(Directory.GetFiles(Path.Text));

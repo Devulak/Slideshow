@@ -4,9 +4,14 @@
         KeyDown="Grid_KeyDown"
         Title="MainWindow" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" SizeToContent="Height" Width="300">
     <Grid>
-        <TextBox Name="Path" Margin="10,10,10,0" VerticalAlignment="Top"/>
-        <TextBox Name="Time" Margin="10,33,10,0" VerticalAlignment="Top"/>
-        <CheckBox Name="Randomized" Content="Randomized" Margin="10,56,10,0" VerticalAlignment="Top"/>
-        <Button Content="Start" Margin="10,76,10,10" Click="StartView" VerticalAlignment="Top"/>
+        <StackPanel Margin="10">
+            <TextBox Name="Path" Margin="0,0,0,10"/>
+            <TextBox Name="Time"/>
+            <Grid>
+                <CheckBox Name="Randomized" Content="Randomized" VerticalAlignment="Center"/>
+                <Label Name="ErrorMessage" Content="" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+            </Grid>
+            <Button Content="Start" Click="StartView"/>
+        </StackPanel>
     </Grid>
 </Window>
