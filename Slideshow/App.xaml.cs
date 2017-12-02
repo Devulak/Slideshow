@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,9 +24,17 @@ namespace Slideshow
                 Slideshow.Properties.Settings.Default.Reset();
             }
 
-            string[] args = e.Args;
-            Dashboard dashboard = new Dashboard(args);
-            dashboard.Show();
+            // 
+            if (e.Args != null && e.Args.Length != 0)
+            {
+                Dashboard dashboard = new Dashboard(e.Args[0]);
+                dashboard.Show();
+            }
+            else
+            {
+                Dashboard dashboard = new Dashboard();
+                dashboard.Show();
+            }
         }
     }
 }

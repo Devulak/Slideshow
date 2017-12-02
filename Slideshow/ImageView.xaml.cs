@@ -27,7 +27,7 @@ namespace Slideshow
             imgControl = ImageController.Instance;
         }
 
-        private void Grid_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void Grid_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
             {

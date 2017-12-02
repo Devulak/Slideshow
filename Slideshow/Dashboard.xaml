@@ -1,17 +1,11 @@
 ﻿<Window x:Class="Slideshow.Dashboard"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        KeyDown="Grid_KeyDown"
-        Title="Dashboard" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" SizeToContent="Height" Width="300">
+        KeyDown="FormKeyDown">
     <Grid>
-        <StackPanel Margin="10">
-            <TextBox Name="Path" Margin="0,0,0,10"/>
-            <TextBox Name="Time"/>
-            <Grid>
-                <CheckBox Name="Randomized" Content="Randomized" VerticalAlignment="Center"/>
-                <Label Name="ErrorMessage" Content="" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-            </Grid>
-            <Button Content="Start" Click="StartView"/>
-        </StackPanel>
+    <Rectangle Fill="#FF121212"/>
+        <Label Name="ErrorMessage" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Image Name="Content"/>
+        <Label Name="Amount" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
     </Grid>
 </Window>

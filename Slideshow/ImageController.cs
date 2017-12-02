@@ -114,36 +114,8 @@ namespace Slideshow
                 }
 
                 // Get filename
-                var fileName = FileEntries[Incrementer + j];
-
-                imageView.Dispatcher.Invoke(() =>
-                {
-                    imageView.Animation.Opacity = 0;
-                    imageView.Image.Opacity = 0;
-                    try
-                    {
-                        imageView.Animation.Opacity = 0;
-                        imageView.Image.Opacity = 0;
-                        if (Path.GetExtension(fileName) == ".gif")
-                        {
-                            var image = new BitmapImage();
-                            image.BeginInit();
-                            image.UriSource = new Uri(fileName);
-                            image.EndInit();
-                            ImageBehavior.SetAnimatedSource(imageView.Animation, image);
-                            imageView.Animation.Opacity = 1;
-                        }
-                        else
-                        {
-                            imageView.Image.Source = new BitmapImage(new Uri(fileName));
-                            imageView.Image.Opacity = 1;
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                });
+                FileInfo fileName = new FileInfo(FileEntries[Incrementer + j]);
+                UniversalContenter.ChangeImage(imageView.Content, fileName.FullName);
             }
         }
     }

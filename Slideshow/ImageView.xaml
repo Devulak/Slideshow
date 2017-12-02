@@ -9,7 +9,6 @@
         KeyDown="Grid_KeyDown" Title="Looper" Height="300" Width="300" ResizeMode="NoResize" WindowStyle="None">
     <Grid>
         <Rectangle Fill="#FF121212" Margin="0" Stroke="Black"/>
-        <Image Name="Image"/>
-        <Image Name="Animation"/>
+        <Image Name="Content"/>
     </Grid>
 </Window>

@@ -14,73 +14,122 @@ namespace Slideshow
     /// </summary>
     public partial class Dashboard : Window
     {
-        public Dashboard(string[] args)
+        private string[] Files;
+        //private string FileDirectory;
+        private int CurrentFile;
+
+        public Dashboard(string filePath)
         {
-            InitializeComponent();
-            if (args.Length != 0)
-            {
-                FileInfo f = new FileInfo(args[0]);
-                Startup(f.DirectoryName);
-            }
-            else
-            {
-                Startup();
-            }
+            Initialize(filePath);
         }
 
         public Dashboard()
         {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            string[] files = GetImageFiles(path);
+            Initialize(files[0]);
+        }
+
+        private void Initialize(string filePath)
+        {
             InitializeComponent();
-            Startup();
+            UpdateFiles(new FileInfo(filePath).DirectoryName);
+            CurrentFile = Array.IndexOf(Files, filePath);
+            UpdateImage(filePath);
         }
 
-        private void Startup()
+        // Right now this just handles exscape or enter keys to make it a lot more keyboard friendly
+        private void FormKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // If the initial path hasn't been set, do so
-            if (Properties.Settings.Default.Path == "")
+            if (e.Key == Key.Right)
             {
-                Properties.Settings.Default.Path = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+                NextImage();
             }
-            Startup(Properties.Settings.Default.Path);
-        }
-        private void Startup(string path)
-        {
-            Path.Text = path;
-            Time.Text = Properties.Settings.Default.Timer.ToString();
-            Randomized.IsChecked = Properties.Settings.Default.Randomized;
+            if (e.Key == Key.Left)
+            {
+                PrevImage();
+            }
+            if (e.Key == Key.Escape)
+            {
+                Close();
+            }
+            if (e.Key == Key.Enter)
+            {
+                //StartView();
+            }
         }
 
-        private void StartView(object sender, RoutedEventArgs e)
+        private void NextImage()
+        {
+            // Incrementer focus
+            CurrentFile++;
+            if (CurrentFile >= Files.Length)
+            {
+                CurrentFile -= Files.Length;
+            }
+            UpdateImage(Files[CurrentFile]);
+        }
+
+        private void PrevImage()
+        {
+            // Incrementer focus
+            CurrentFile--;
+            if (CurrentFile < 0)
+            {
+                CurrentFile += Files.Length;
+            }
+            UpdateImage(Files[CurrentFile]);
+        }
+
+        private void UpdateImage(string filePath)
+        {
+            FileInfo currentFile = new FileInfo(filePath);
+            string[] files = GetImageFiles(currentFile.DirectoryName);
+            Amount.Content = (CurrentFile+1) + " / " + files.Length;
+            try
+            {
+                ErrorMessage.Content = null;
+                UniversalContenter.ChangeImage(Content, filePath);
+            }
+            catch (Exception)
+            {
+                // NotSupportedException || NullReferenceException
+                ErrorMessage.Content = (currentFile.Name) + " is not supported";
+            }
+            this.Title = currentFile.Name + " - Slideshow";
+        }
+
+        private string[] GetImageFiles(string directory)
+        {
+            List<string> extensions = new List<string> { ".jpeg", ".jpg", ".gif", ".png" };
+            IEnumerable<String> files = Directory.GetFiles(directory).Where(s => extensions.Contains(Path.GetExtension(s)));
+            return files.ToArray();
+        }
+
+        private void UpdateFiles(string directory)
+        {
+            Files = GetImageFiles(directory);
+        }
+
+        /*private void StartView(object sender, RoutedEventArgs e)
+        {
+            StartView();
+        }*/
+
+        /*private void StartView()
         {
             ImageController imgControl = ImageController.Instance;
             
             try // to set the path for the folder
             {
-                // TODO: fix this "hack"
-                string[] directoryFiles = Directory.GetFiles(Path.Text);
-                List<string> listOfFiles = new List<string>();
-                foreach (string file in directoryFiles)
-                {
-                    FileInfo f = new FileInfo(file);
-                    string[] acceptedFileTypes = { "jpg", "jpeg", "png", "gif" };
-                    foreach (string fileType in acceptedFileTypes)
-                    {
-                        if (f.Extension == fileType)
-                        {
-                            listOfFiles.Add(file);
-                            return;
-                        }
-                    }
-                }
-                imgControl.FileEntries = listOfFiles.ToArray();
+                imgControl.FileEntries = Directory.GetFiles(Path.Text);
             }
             catch (DirectoryNotFoundException) // if the given folder doesn't exists
             {
                 ErrorMessage.Content = "Could not find given path!";
                 return;
             }
-
-            Properties.Settings.Default.Path = Path.Text;
+            
             Properties.Settings.Default.Timer = Int32.Parse(Time.Text);
             Properties.Settings.Default.Randomized = (bool)Randomized.IsChecked;
             Properties.Settings.Default.Save();
@@ -109,24 +158,18 @@ namespace Slideshow
 
             if (Properties.Settings.Default.Randomized)
             {
-                imgControl.FileEntries = Shuffle(Directory.GetFiles(Path.Text));
+                imgControl.FileEntries = Shuffle(imgControl.FileEntries);
             }
 
             imgControl.ImageViews = imageViews;
             imgControl.Start();
 
             Close();
-        }
+        }*/
 
-        private void Grid_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == Key.Escape)
-            {
-                Close();
-            }
-        }
-
-        private string[] Shuffle(string[] files)
+        // Shuffle a string array
+        // TODO: change it to List<string>
+        /*private string[] Shuffle(string[] files)
         {
             Random rnd = new Random();
 
@@ -138,6 +181,6 @@ namespace Slideshow
                 files[ticket] = fileHolder; // Replace [ticket] with the fileHolder which held the [i] value
             }
             return files;
-        }
+        }*/
     }
 }
