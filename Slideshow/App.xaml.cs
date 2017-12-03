@@ -32,7 +32,6 @@ namespace Slideshow
             // A: Right now it should work as a "perfect world", afterwards, the VisualImageHandler should take care of wrongdoings
 
             string path = (e.Args != null && e.Args.Length != 0) ? e.Args[0] : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            path = @"C:\Users\ZeroXitreo\Documents\GitHub\Slideshow\Slideshow\bin\Debug";
 
             Dashboard dashboard = new Dashboard(path);
             dashboard.Show();

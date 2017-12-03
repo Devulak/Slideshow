@@ -33,10 +33,12 @@ namespace Slideshow
             //detect whether its a directory or file
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
             {
+                // Directory
                 Initialize(GetImageFiles(path)[0]);
             }
             else
             {
+                // File
                 Initialize(path);
             }
         }
