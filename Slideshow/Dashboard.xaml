@@ -5,17 +5,17 @@
     <Grid>
         <Rectangle Fill="#121212"/>
         <Label Name="ErrorMessage" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Image Name="Content" Margin="0,0,0,5"/>
-        <Grid Height="10" VerticalAlignment="Bottom">
+        <Image Name="Content"/>
+        <Grid Height="5" VerticalAlignment="Bottom">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Name="ProgressFull" Width="10*"/>
                 <ColumnDefinition Name="ProgressEmpty" Width="10*"/>
             </Grid.ColumnDefinitions>
             <Rectangle Fill="#33FFFFFF"/>
         </Grid>
-        <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,15" />
-        <Label Style="{DynamicResource ElementCover}" Content="About" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" />
-        <Label Style="{DynamicResource ElementCover}" Content="Slideshow" HorizontalAlignment="Right" Margin="0,45,10,0" VerticalAlignment="Top" RenderTransformOrigin="0.468,0.967" />
+        <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" />
+        <Button Style="{DynamicResource ButtonCover}" Content="About" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenAbout"/>
+        <Button Style="{DynamicResource ButtonCover}" Content="Slideshow" Margin="0,45,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenSettings"/>
     </Grid>
     <Window.Resources>
         <Style TargetType="Label" x:Key="ElementCover">
@@ -23,6 +23,13 @@
             <Setter Property="Background" Value="#FF121212" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="BorderBrush" Value="#FF222222" />
+        </Style>
+        <Style TargetType="Button" x:Key="ButtonCover">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#FF121212" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="#FF222222" />
+            <Setter Property="Padding" Value="5" />
         </Style>
     </Window.Resources>
 </Window>

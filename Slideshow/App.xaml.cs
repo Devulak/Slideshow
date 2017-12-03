@@ -24,17 +24,17 @@ namespace Slideshow
                 Slideshow.Properties.Settings.Default.Reset();
             }
 
-            // 
-            if (e.Args != null && e.Args.Length != 0)
-            {
-                Dashboard dashboard = new Dashboard(e.Args[0]);
-                dashboard.Show();
-            }
-            else
-            {
-                Dashboard dashboard = new Dashboard();
-                dashboard.Show();
-            }
+            // TODO: make sure the class can't get initialized without either of the following:
+            // file
+            // a path
+
+            // Q: What if the files are filtered out? (practically showing 0 files in the dashboard)
+            // A: Right now it should work as a "perfect world", afterwards, the VisualImageHandler should take care of wrongdoings
+
+            string path = (e.Args != null && e.Args.Length != 0) ? e.Args[0] : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
+            Dashboard dashboard = new Dashboard(path);
+            dashboard.Show();
         }
     }
 }

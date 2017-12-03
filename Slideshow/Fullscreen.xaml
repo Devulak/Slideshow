@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Slideshow.Fullscreen"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Fullscreen - Slideshow" ResizeMode="NoResize" WindowStyle="None" WindowState="Maximized">
+        Title="Fullscreen - Slideshow" ResizeMode="NoResize" WindowStyle="None" WindowState="Maximized" KeyDown="Shortcuts">
     <Grid>
         <Rectangle Fill="#121212"/>
         <Label Name="ErrorMessage" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />

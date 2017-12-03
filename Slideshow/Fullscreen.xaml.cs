@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using WpfAnimatedGif;
 
 namespace Slideshow
 {
@@ -20,23 +21,30 @@ namespace Slideshow
     /// </summary>
     public partial class Fullscreen : Window
     {
-        private bool IsLimited = false;
+        private VisualImageHandler visualImageHandler;
 
         // selected image
-        public Fullscreen(FileInfo fileInfo)
+        public Fullscreen(string fullPath)
         {
             InitializeComponent();
+            
+            visualImageHandler = new VisualImageHandler(Content, fullPath);
         }
 
-        // path or limited images
-        public Fullscreen(FileInfo[] fileInfo, bool isLimited)
+        private void Shortcuts(object sender, KeyEventArgs e)
         {
-            InitializeComponent();
-            IsLimited = isLimited;
-        }
-        
-        private  Fullscreen()
-        {
+            if (e.Key == Key.Right)
+            {
+                visualImageHandler.NextImage();
+            }
+            if (e.Key == Key.Left)
+            {
+                visualImageHandler.PrevImage();
+            }
+            if (e.Key == Key.Escape)
+            {
+                Close();
+            }
         }
     }
 }

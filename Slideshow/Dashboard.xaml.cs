@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace Slideshow
@@ -19,17 +18,23 @@ namespace Slideshow
         private string[] Files;
         private int CurrentFile;
 
-        //Later work
-        public Dashboard()
+        public Dashboard(string path)
         {
-            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            string[] files = GetImageFiles(fileDirectory);
-            Initialize(files[0]);
-        }
 
-        public Dashboard(string filePath)
-        {
-            Initialize(filePath);
+            // get the file attributes for file or directory
+            FileAttributes attr = File.GetAttributes(path);
+
+            //detect whether its a directory or file
+            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                Console.WriteLine("It's a directory");
+                Initialize(GetImageFiles(path)[0]);
+            }
+            else
+            {
+                Console.WriteLine("It's a file");
+                Initialize(path);
+            }
         }
         
         private void Initialize(string filePath)
@@ -83,7 +88,7 @@ namespace Slideshow
         }
 
         // Right now this just handles exscape or enter keys to make it a lot more keyboard friendly
-        private void FormKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void FormKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Right)
             {
@@ -99,7 +104,7 @@ namespace Slideshow
             }
             if (e.Key == Key.Enter)
             {
-                new Fullscreen(new FileInfo(Files[CurrentFile])).Show();
+                new Fullscreen(Files[CurrentFile]).Show();
             }
             if (e.Key == Key.Delete)
             {
@@ -188,6 +193,20 @@ namespace Slideshow
             fileArray = fileArray.OrderBy(x => x, StringComparer.OrdinalIgnoreCase.WithNaturalSort()).ToArray();
             return fileArray;
             // return list.toArray().Length == 0 ? null : list.toArray();
+        }
+
+        private void OpenAbout(object sender, RoutedEventArgs e)
+        {
+            About about = new About();
+            about.Owner = this;
+            about.ShowDialog();
+        }
+
+        private void OpenSettings(object sender, RoutedEventArgs e)
+        {
+            Settings settings = new Settings();
+            settings.Owner = this;
+            settings.ShowDialog();
         }
 
         private void StartView()
