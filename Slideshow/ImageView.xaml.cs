@@ -19,12 +19,12 @@ namespace Slideshow
     /// </summary>
     public partial class ImageView : Window
     {
-        private ImageController imgControl;
+        private ImageControllerOld imgControl;
 
         public ImageView()
         {
             InitializeComponent();
-            imgControl = ImageController.Instance;
+            imgControl = ImageControllerOld.Instance;
         }
 
         private void Grid_KeyDown(object sender, KeyEventArgs e)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NaturalSort.Extension;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,28 +15,71 @@ namespace Slideshow
     /// </summary>
     public partial class Dashboard : Window
     {
+        private string FileDirectory;
         private string[] Files;
-        //private string FileDirectory;
         private int CurrentFile;
+
+        //Later work
+        public Dashboard()
+        {
+            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            string[] files = GetImageFiles(fileDirectory);
+            Initialize(files[0]);
+        }
 
         public Dashboard(string filePath)
         {
             Initialize(filePath);
         }
-
-        public Dashboard()
-        {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            string[] files = GetImageFiles(path);
-            Initialize(files[0]);
-        }
-
+        
         private void Initialize(string filePath)
         {
             InitializeComponent();
-            UpdateFiles(new FileInfo(filePath).DirectoryName);
-            CurrentFile = Array.IndexOf(Files, filePath);
-            UpdateImage(filePath);
+            FileDirectory = new FileInfo(filePath).DirectoryName; // Set Directory of where the file is located in
+            Files = GetImageFiles(FileDirectory);
+            CurrentFile = Array.IndexOf(Files, filePath); // Set CurrentFile to the int corresponding to the file in the folder
+            UpdateImage(); // Update image to the CurrentFile path
+            
+            FileSystemWatcher watcher = new FileSystemWatcher()
+            {
+                Path = FileDirectory,
+                EnableRaisingEvents = true
+            };
+            watcher.Created += new FileSystemEventHandler(OnUpdate);
+            watcher.Deleted += new FileSystemEventHandler(OnUpdate);
+            watcher.Renamed += new RenamedEventHandler(OnRenamed);
+        }
+
+        private void OnRenamed(object source, RenamedEventArgs e)
+        {
+            string file = Files[CurrentFile];
+            Files = GetImageFiles(FileDirectory);
+            // check to see if it's the current file being re-named
+            if (file == e.OldFullPath)
+            {
+                // check to see if the current file is still there
+                if (Files.Contains(e.FullPath))
+                {
+                    // Move pointer to the new file location (in the array)
+                    CurrentFile = Array.IndexOf(Files, e.FullPath);
+                }
+            }
+            PreventScopeMiss();
+            UpdateImage();
+        }
+
+        private void OnUpdate(object source, FileSystemEventArgs e)
+        {
+            string file = Files[CurrentFile];
+            Files = GetImageFiles(FileDirectory);
+            // check to see if the current file is still there
+            if (Files.Contains(file))
+            {
+                // Move pointer to the new file location (in the array)
+                CurrentFile = Array.IndexOf(Files, file);
+            }
+            PreventScopeMiss();
+            UpdateImage();
         }
 
         // Right now this just handles exscape or enter keys to make it a lot more keyboard friendly
@@ -55,84 +99,105 @@ namespace Slideshow
             }
             if (e.Key == Key.Enter)
             {
-                //StartView();
+                new Fullscreen().Show();
+            }
+            if (e.Key == Key.Delete)
+            {
+                try
+                {
+                    File.Delete(Files[CurrentFile]);
+                }
+                catch (IOException)
+                {
+
+                }
             }
         }
 
         private void NextImage()
         {
-            // Incrementer focus
             CurrentFile++;
-            if (CurrentFile >= Files.Length)
+            while (CurrentFile >= Files.Length)
             {
                 CurrentFile -= Files.Length;
             }
-            UpdateImage(Files[CurrentFile]);
+            PreventScopeMiss();
+            UpdateImage();
         }
 
         private void PrevImage()
         {
-            // Incrementer focus
             CurrentFile--;
-            if (CurrentFile < 0)
+            while (CurrentFile < 0)
             {
                 CurrentFile += Files.Length;
             }
-            UpdateImage(Files[CurrentFile]);
+            PreventScopeMiss();
+            UpdateImage();
         }
 
-        private void UpdateImage(string filePath)
+        private void PreventScopeMiss()
         {
-            FileInfo currentFile = new FileInfo(filePath);
-            string[] files = GetImageFiles(currentFile.DirectoryName);
-            Amount.Content = (CurrentFile+1) + " / " + files.Length;
-            try
+            while (CurrentFile >= Files.Length)
             {
-                ErrorMessage.Content = null;
-                UniversalContenter.ChangeImage(Content, filePath);
+                CurrentFile = Files.Length-1;
             }
-            catch (Exception)
-            {
-                // NotSupportedException || NullReferenceException
-                ErrorMessage.Content = (currentFile.Name) + " is not supported";
-            }
-            this.Title = currentFile.Name + " - Slideshow";
         }
 
-        private string[] GetImageFiles(string directory)
+        private void UpdateImage()
+        {
+            Amount.Dispatcher.Invoke(() =>
+            {
+                ProgressFull.Width = new GridLength(CurrentFile, GridUnitType.Star);
+                ProgressEmpty.Width = new GridLength(Files.Length - CurrentFile - 1, GridUnitType.Star);
+                Amount.Content = (CurrentFile + 1) + " / " + Files.Length;
+                try
+                {
+                    ErrorMessage.Content = null;
+                    UniversalContenter.ClearImage(Content);
+                    UniversalContenter.ChangeImage(Content, Files[CurrentFile]);
+                }
+                catch (Exception ex)
+                {
+                    // NotSupportedException || NullReferenceException
+                    try
+                    {
+                        ErrorMessage.Content = new FileInfo(Files[CurrentFile]).Name + " is not supported";
+                    }
+                    catch
+                    {
+                        ErrorMessage.Content = "No files to display";
+                    }
+                }
+                try
+                {
+                    Title = new FileInfo(Files[CurrentFile]).Name + " - Slideshow";
+                }
+                catch
+                {
+                    ErrorMessage.Content = "No files to display";
+                }
+            });
+        }
+
+        private string[] GetImageFiles(string path)
         {
             List<string> extensions = new List<string> { ".jpeg", ".jpg", ".gif", ".png" };
-            IEnumerable<String> files = Directory.GetFiles(directory).Where(s => extensions.Contains(Path.GetExtension(s)));
-            return files.ToArray();
+            IEnumerable<String> files = Directory.GetFiles(path).Where(s => extensions.Contains(Path.GetExtension(s)));
+            string[] fileArray = files.ToArray();
+            fileArray = fileArray.OrderBy(x => x, StringComparer.OrdinalIgnoreCase.WithNaturalSort()).ToArray();
+            return fileArray;
+            // return list.toArray().Length == 0 ? null : list.toArray();
         }
 
-        private void UpdateFiles(string directory)
+        private void StartView()
         {
-            Files = GetImageFiles(directory);
-        }
+            /*ImageController imgControl = ImageController.Instance;
+            imgControl.FileEntries = Files;
 
-        /*private void StartView(object sender, RoutedEventArgs e)
-        {
-            StartView();
-        }*/
-
-        /*private void StartView()
-        {
-            ImageController imgControl = ImageController.Instance;
-            
-            try // to set the path for the folder
-            {
-                imgControl.FileEntries = Directory.GetFiles(Path.Text);
-            }
-            catch (DirectoryNotFoundException) // if the given folder doesn't exists
-            {
-                ErrorMessage.Content = "Could not find given path!";
-                return;
-            }
-            
-            Properties.Settings.Default.Timer = Int32.Parse(Time.Text);
+            /*Properties.Settings.Default.Timer = Int32.Parse(Time.Text);
             Properties.Settings.Default.Randomized = (bool)Randomized.IsChecked;
-            Properties.Settings.Default.Save();
+            Properties.Settings.Default.Save();*//*
 
 
             Screen[] screens = Screen.AllScreens;
@@ -154,18 +219,13 @@ namespace Slideshow
             }
 
             imgControl.Reset();
-            imgControl.Timer = Int32.Parse(Time.Text);
-
-            if (Properties.Settings.Default.Randomized)
-            {
-                imgControl.FileEntries = Shuffle(imgControl.FileEntries);
-            }
+            imgControl.Timer = Properties.Settings.Default.Timer;
 
             imgControl.ImageViews = imageViews;
             imgControl.Start();
 
-            Close();
-        }*/
+            Close();*/
+        }
 
         // Shuffle a string array
         // TODO: change it to List<string>

@@ -14,11 +14,29 @@ namespace Slideshow
     {
         static public void ChangeImage(Image target, string filePath)
         {
+            MemoryStream memory = new MemoryStream();
+            using (FileStream file = File.OpenRead(filePath))
+            {
+                file.CopyTo(memory);
+            }
+
+            memory.Seek(0, SeekOrigin.Begin);
+
+            var imageSource = new BitmapImage();
+            imageSource.BeginInit();
+            imageSource.StreamSource = memory;
+            imageSource.EndInit();
+            target.Dispatcher.Invoke(() =>
+            {
+                ImageBehavior.SetAnimatedSource(target, imageSource);
+            });
+        }
+
+        static public void ClearImage(Image target)
+        {
             target.Dispatcher.Invoke(() =>
             {
                 ImageBehavior.SetAnimatedSource(target, null);
-                var image = new BitmapImage(new Uri(filePath));
-                ImageBehavior.SetAnimatedSource(target, image);
             });
         }
     }

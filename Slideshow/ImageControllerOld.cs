@@ -10,9 +10,9 @@ using WpfAnimatedGif;
 
 namespace Slideshow
 {
-    class ImageController
+    class ImageControllerOld
     {
-        private static ImageController instance;
+        private static ImageControllerOld instance;
         private Random rnd;
         private Thread thread;
         private int Incrementer;
@@ -21,19 +21,19 @@ namespace Slideshow
         public string[] FileEntries { get; set; }
         public List<ImageView> ImageViews { get; set; }
 
-        public static ImageController Instance
+        public static ImageControllerOld Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new ImageController();
+                    instance = new ImageControllerOld();
                 }
                 return instance;
             }
         }
 
-        public ImageController()
+        public ImageControllerOld()
         {
             Incrementer = -1;
             Run = false;
