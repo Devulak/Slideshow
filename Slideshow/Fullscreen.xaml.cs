@@ -29,6 +29,20 @@ namespace Slideshow
             InitializeComponent();
             
             visualImageHandler = new VisualImageHandler(Content, fullPath);
+
+            // add eventhandler
+            visualImageHandler.Changed += new VisualEventHandler(OnChange);
+            OnChange(); // Call to get initial values
+        }
+
+        private void OnChange()
+        {
+            Amount.Dispatcher.Invoke(() =>
+            {
+                Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
+                ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
+                ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
+            });
         }
 
         private void Shortcuts(object sender, KeyEventArgs e)
