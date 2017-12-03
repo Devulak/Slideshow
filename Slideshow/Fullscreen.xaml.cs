@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,9 +20,23 @@ namespace Slideshow
     /// </summary>
     public partial class Fullscreen : Window
     {
-        public Fullscreen()
+        private bool IsLimited = false;
+
+        // selected image
+        public Fullscreen(FileInfo fileInfo)
         {
             InitializeComponent();
+        }
+
+        // path or limited images
+        public Fullscreen(FileInfo[] fileInfo, bool isLimited)
+        {
+            InitializeComponent();
+            IsLimited = isLimited;
+        }
+        
+        private  Fullscreen()
+        {
         }
     }
 }

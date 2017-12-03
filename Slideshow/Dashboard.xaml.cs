@@ -99,7 +99,7 @@ namespace Slideshow
             }
             if (e.Key == Key.Enter)
             {
-                new Fullscreen().Show();
+                new Fullscreen(new FileInfo(Files[CurrentFile])).Show();
             }
             if (e.Key == Key.Delete)
             {
@@ -157,7 +157,7 @@ namespace Slideshow
                     UniversalContenter.ClearImage(Content);
                     UniversalContenter.ChangeImage(Content, Files[CurrentFile]);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // NotSupportedException || NullReferenceException
                     try
