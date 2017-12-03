@@ -12,12 +12,16 @@ using WpfAnimatedGif;
 
 namespace Slideshow
 {
+    public delegate void VisualEventHandler();
+
     class VisualImageHandler
     {
         private string FileDirectory;
-        private string[] Files;
-        private int CurrentFile;
+        public string[] Files { get; private set; }
+        public int CurrentFile { get; private set; }
         private Image Target;
+
+        public event VisualEventHandler Changed;
 
         public VisualImageHandler(Image target, string path)
         {
@@ -70,6 +74,7 @@ namespace Slideshow
             }
             PreventScopeMiss();
             UpdateImage();
+            Changed();
         }
 
         private void OnUpdate(object source, FileSystemEventArgs e)
@@ -84,6 +89,7 @@ namespace Slideshow
             }
             PreventScopeMiss();
             UpdateImage();
+            Changed();
         }
 
         public void NextImage()
@@ -95,6 +101,7 @@ namespace Slideshow
             }
             PreventScopeMiss();
             UpdateImage();
+            Changed();
         }
 
         public void PrevImage()
@@ -106,6 +113,7 @@ namespace Slideshow
             }
             PreventScopeMiss();
             UpdateImage();
+            Changed();
         }
 
         private void PreventScopeMiss()

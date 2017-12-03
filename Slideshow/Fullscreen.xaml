@@ -5,6 +5,22 @@
     <Grid>
         <Rectangle Fill="#121212"/>
         <Label Name="ErrorMessage" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Image Name="Content" Margin="0,0,0,5"/>
+        <Image Name="Content"/>
+        <Grid Height="5" VerticalAlignment="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Name="ProgressFull" Width="10*"/>
+                <ColumnDefinition Name="ProgressEmpty" Width="10*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle Fill="#33FFFFFF"/>
+        </Grid>
+        <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" />
     </Grid>
+    <Window.Resources>
+        <Style TargetType="Label" x:Key="ElementCover">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#FF121212" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="#FF222222" />
+        </Style>
+    </Window.Resources>
 </Window>

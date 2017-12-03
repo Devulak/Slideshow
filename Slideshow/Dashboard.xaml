@@ -15,7 +15,7 @@
         </Grid>
         <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" />
         <Button Style="{DynamicResource ButtonCover}" Content="About" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenAbout"/>
-        <Button Style="{DynamicResource ButtonCover}" Content="Slideshow" Margin="0,45,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenSettings"/>
+        <Button Style="{DynamicResource ButtonCover}" Content="Settings" Margin="0,45,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenSettings"/>
     </Grid>
     <Window.Resources>
         <Style TargetType="Label" x:Key="ElementCover">
