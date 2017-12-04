@@ -16,7 +16,7 @@ namespace Slideshow
 
     class VisualImageHandler
     {
-        private string FileDirectory;
+        public string FileDirectory { get; private set; }
         public string[] Files { get; private set; }
         public int CurrentFile { get; private set; }
         private Image Target;
@@ -34,20 +34,17 @@ namespace Slideshow
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
             {
                 // Directory
-                Initialize(GetImageFiles(path)[0]);
+                FileDirectory = path;
+                Files = GetImageFiles(FileDirectory);
+                CurrentFile = 0;
             }
             else
             {
                 // File
-                Initialize(path);
+                FileDirectory = new FileInfo(path).DirectoryName;
+                Files = GetImageFiles(FileDirectory);
+                CurrentFile = Array.IndexOf(Files, path);
             }
-        }
-
-        private void Initialize(string fullPath)
-        {
-            FileDirectory = new FileInfo(fullPath).DirectoryName; // Set Directory of where the file is located in
-            Files = GetImageFiles(FileDirectory);
-            CurrentFile = Array.IndexOf(Files, fullPath); // Set CurrentFile to the int corresponding to the file in the folder
             UpdateImage(); // Update image to the CurrentFile path
 
             FileSystemWatcher watcher = new FileSystemWatcher()
@@ -63,111 +60,142 @@ namespace Slideshow
         private void OnRenamed(object source, RenamedEventArgs e)
         {
             string file = Files[CurrentFile];
-            Files = GetImageFiles(FileDirectory);
             // check to see if it's the current file being re-named
             if (file == e.OldFullPath)
             {
-                // check to see if the current file is still there
-                if (Files.Contains(e.FullPath))
-                {
-                    // Move pointer to the new file location (in the array)
-                    CurrentFile = Array.IndexOf(Files, e.FullPath);
-                }
+                Files = GetImageFiles(FileDirectory);
+                // Move pointer to the new file location (in the array)
+                CurrentFile = Array.IndexOf(Files, e.FullPath);
             }
-            PreventScopeMiss();
             UpdateImage();
             Changed();
         }
 
         private void OnUpdate(object source, FileSystemEventArgs e)
         {
-            string file = Files[CurrentFile];
-            Files = GetImageFiles(FileDirectory);
-            // check to see if the current file is still there
-            if (Files.Contains(file))
+            Console.WriteLine(e.FullPath);
+            if (GetImageFiles(FileDirectory).Length > 0 && Files.Length > 0)
             {
-                // Move pointer to the new file location (in the array)
-                CurrentFile = Array.IndexOf(Files, file);
+                string file = Files[CurrentFile];
+                Files = GetImageFiles(FileDirectory);
+                // check to see if the current file is still there
+                if (Files.Contains(file))
+                {
+                    // Move pointer to the new file location (in the array)
+                    CurrentFile = Array.IndexOf(Files, file);
+                }
             }
-            PreventScopeMiss();
+            else
+            {
+                Files = GetImageFiles(FileDirectory);
+                CurrentFile = 0;
+            }
+            UpdateImage();
+            Changed();
+        }
+
+        private void OnDeleted(object source, FileSystemEventArgs e)
+        {
+            Console.WriteLine(e.FullPath);
+            if (GetImageFiles(FileDirectory).Length > 0 && Files.Length > 0)
+            {
+                string file = Files[CurrentFile];
+                Files = GetImageFiles(FileDirectory);
+                // check to see if the current file is still there
+                if (Files.Contains(file))
+                {
+                    // Move pointer to the new file location (in the array)
+                    CurrentFile = Array.IndexOf(Files, file);
+                }
+            }
+            else
+            {
+                Files = GetImageFiles(FileDirectory);
+                CurrentFile = 0;
+            }
             UpdateImage();
             Changed();
         }
 
         public void NextImage()
         {
-            CurrentFile++;
-            while (CurrentFile >= Files.Length)
+            if (Files.Length > 0) // Is there even an image?
             {
-                CurrentFile -= Files.Length;
+                CurrentFile++;
+                while (CurrentFile >= Files.Length)
+                {
+                    CurrentFile -= Files.Length;
+                }
+                UpdateImage();
+                Changed();
             }
-            PreventScopeMiss();
-            UpdateImage();
-            Changed();
         }
 
         public void PrevImage()
         {
-            CurrentFile--;
-            while (CurrentFile < 0)
+            if (Files.Length > 0) // Is there even an image?
             {
-                CurrentFile += Files.Length;
-            }
-            PreventScopeMiss();
-            UpdateImage();
-            Changed();
-        }
-
-        private void PreventScopeMiss()
-        {
-            while (CurrentFile >= Files.Length)
-            {
-                CurrentFile = Files.Length - 1;
+                CurrentFile--;
+                while (CurrentFile < 0)
+                {
+                    CurrentFile += Files.Length;
+                }
+                UpdateImage();
+                Changed();
             }
         }
 
         private void UpdateImage()
         {
+            // Clear canvas
             Target.Dispatcher.Invoke(() =>
             {
-                try
-                {
-                    Target.Dispatcher.Invoke(() =>
-                    {
-                        ImageBehavior.SetAnimatedSource(Target, null);
-                    });
-
-                    MemoryStream memory = new MemoryStream();
-                    using (FileStream file = File.OpenRead(Files[CurrentFile]))
-                    {
-                        file.CopyTo(memory);
-                    }
-
-                    memory.Seek(0, SeekOrigin.Begin);
-
-                    var imageSource = new BitmapImage();
-                    imageSource.BeginInit();
-                    imageSource.StreamSource = memory;
-                    imageSource.EndInit();
-
-                    Target.Dispatcher.Invoke(() =>
-                    {
-                        ImageBehavior.SetAnimatedSource(Target, imageSource);
-                    });
-                }
-                catch (Exception)
-                {
-                    // NotSupportedException || NullReferenceException
-                    try
-                    {
-                        Console.WriteLine(new FileInfo(Files[CurrentFile]).Name + " is not supported");
-                    }
-                    catch
-                    {
-                        Console.WriteLine("No files to display");
-                    }
-                }
+                ImageBehavior.SetAnimatedSource(Target, null);
             });
+
+            if (Files.Length > 0) // Is there even an image?
+            {
+                // Make sure to point at a picture, no matter what the CurrentFile is 
+                // TODO: fix if two or more files are being deleted
+                if (CurrentFile >= Files.Length)
+                {
+                    CurrentFile = Files.Length - 1;
+                }
+
+                // vs
+
+                CurrentFile = (CurrentFile >= Files.Length) ? (Files.Length - 1) : CurrentFile;
+
+                // Display the image
+                Target.Dispatcher.Invoke(() =>
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            MemoryStream memory = new MemoryStream();
+                            using (FileStream file = File.OpenRead(Files[CurrentFile]))
+                            {
+                                file.CopyTo(memory);
+                            }
+
+                            memory.Seek(0, SeekOrigin.Begin);
+
+                            var imageSource = new BitmapImage();
+                            imageSource.BeginInit();
+                            imageSource.StreamSource = memory;
+                            imageSource.EndInit();
+
+                            ImageBehavior.SetAnimatedSource(Target, imageSource);
+                            break;
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                });
+            }
         }
 
         private string[] GetImageFiles(string path)

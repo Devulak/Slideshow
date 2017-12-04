@@ -39,9 +39,21 @@ namespace Slideshow
         {
             Amount.Dispatcher.Invoke(() =>
             {
-                Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
-                ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
-                ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
+                if (visualImageHandler.Files.Length > 0)
+                {
+                    Title = new FileInfo(visualImageHandler.Files[visualImageHandler.CurrentFile]).Name + " - Fullscreen";
+                    Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
+                    ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
+                    ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
+                }
+                else
+                {
+                    Title = "Fullscreen";
+                    ErrorMessage.Content = "No files to show";
+                    Amount.Content = "0 / 0";
+                    ProgressFull.Width = new GridLength(0, GridUnitType.Star);
+                    ProgressEmpty.Width = new GridLength(1, GridUnitType.Star);
+                }
             });
         }
 
@@ -57,6 +69,14 @@ namespace Slideshow
             }
             if (e.Key == Key.Escape)
             {
+                if (visualImageHandler.Files.Length > 0)
+                {
+                    new Dashboard(visualImageHandler.Files[visualImageHandler.CurrentFile]).Show();
+                }
+                else
+                {
+                    new Dashboard(visualImageHandler.FileDirectory).Show();
+                }
                 Close();
             }
         }
