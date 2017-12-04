@@ -57,6 +57,7 @@ namespace Slideshow
             }
             if (e.Key == Key.Escape)
             {
+                new Dashboard(visualImageHandler.Files[visualImageHandler.CurrentFile]).Show();
                 Close();
             }
         }

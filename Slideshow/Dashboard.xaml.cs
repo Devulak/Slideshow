@@ -30,12 +30,15 @@ namespace Slideshow
 
         private void OnChange()
         {
-            Amount.Dispatcher.Invoke(() =>
+            if (visualImageHandler.Files.Length > 0)
             {
-                Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
-                ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
-                ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
-            });
+                Amount.Dispatcher.Invoke(() =>
+                {
+                    Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
+                    ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
+                    ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
+                });
+            }
         }
 
         private void Shortcuts(object sender, KeyEventArgs e)
@@ -55,6 +58,7 @@ namespace Slideshow
             if (e.Key == Key.Enter)
             {
                 new Fullscreen(visualImageHandler.Files[visualImageHandler.CurrentFile]).Show();
+                Close();
             }
             if (e.Key == Key.Delete)
             {
