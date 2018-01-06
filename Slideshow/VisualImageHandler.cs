@@ -17,8 +17,6 @@ namespace Slideshow
 
     class VisualImageHandler
     {
-        public string[] Files { get; private set; }
-        public int CurrentFile { get; private set; }
         public DirectoryInfo DirectoryInfo { get; private set; }
         public List<FileInfo> FileInfos { get; private set; }
         public FileInfo CurrentFileInfo { get; private set; }
@@ -39,14 +37,15 @@ namespace Slideshow
                 // Directory
                 DirectoryInfo = new DirectoryInfo(path);
                 UpdateImagePathFiles(DirectoryInfo);
-                CurrentFile = 0;
+                CurrentFileInfo = FileInfos.FirstOrDefault();
             }
-            else
+            else // It's a file!
             {
                 // File
-                DirectoryInfo = new FileInfo(path).Directory;
+                CurrentFileInfo = new FileInfo(path);
+                DirectoryInfo = CurrentFileInfo.Directory;
                 UpdateImagePathFiles(DirectoryInfo);
-                CurrentFile = Array.IndexOf(Files, path);
+                CurrentFileInfo = FileInfos.Find(x => x.FullName == CurrentFileInfo.FullName); // Makes sure it points as the actual object in the list
             }
             UpdateImage(); // Update image to the CurrentFile path
 
@@ -58,17 +57,19 @@ namespace Slideshow
             watcher.Created += new FileSystemEventHandler(OnUpdate);
             watcher.Deleted += new FileSystemEventHandler(OnDeleted);
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
+            Console.WriteLine(FileInfos.Count());
+            Console.WriteLine(CurrentFileInfo.Name);
+            Console.WriteLine(FileInfos.FindIndex(x => x == CurrentFileInfo));
         }
 
         private void OnRenamed(object source, RenamedEventArgs e)
         {
-            string file = Files[CurrentFile];
             // check to see if it's the current file being re-named
-            if (file == e.OldFullPath)
+            if (CurrentFileInfo.FullName == e.OldFullPath)
             {
                 UpdateImagePathFiles(DirectoryInfo);
                 // Move pointer to the new file location (in the array)
-                CurrentFile = Array.IndexOf(Files, e.FullPath);
+                CurrentFileInfo = FileInfos.Find(x => x.FullName == e.FullPath);
             }
             UpdateImage();
             Changed();
@@ -76,25 +77,22 @@ namespace Slideshow
 
         private void OnUpdate(object source, FileSystemEventArgs e)
         {
-            Console.WriteLine(e.FullPath);
             UpdateImagePathFiles(DirectoryInfo);
-            if (Files.Length > 0 && Files.Length > 0)
+            if (FileInfos.Count() > 0)
             {
-                string file = Files[CurrentFile];
-
                 UpdateImagePathFiles(DirectoryInfo);
 
                 // check to see if the current file is still there
-                if (Files.Contains(file))
+                if (FileInfos.Find(x => x.FullName == e.FullPath) != null)
                 {
                     // Move pointer to the new file location (in the array)
-                    CurrentFile = Array.IndexOf(Files, file);
+                    CurrentFileInfo = FileInfos.Find(x => x.FullName == e.FullPath);
                 }
             }
             else
             {
                 UpdateImagePathFiles(DirectoryInfo);
-                CurrentFile = 0;
+                CurrentFileInfo = FileInfos.FirstOrDefault();
             }
             UpdateImage();
             Changed();
@@ -102,30 +100,47 @@ namespace Slideshow
 
         private void OnDeleted(object source, FileSystemEventArgs e)
         {
-            if (Files.Length > 0)
+            int index = FileInfos.FindIndex(x => x == CurrentFileInfo);
+            if (FileInfos.Count() > 0)
             {
-                List<string> list = new List<string>(Files);
-                list.Remove(e.FullPath);
-                Files = list.ToArray();
+                FileInfo fi = FileInfos.Find(x => x.FullName == e.FullPath);
+                FileInfos.Remove(fi);
             }
             else
             {
                 UpdateImagePathFiles(DirectoryInfo);
-                CurrentFile = 0;
+                CurrentFileInfo = FileInfos.FirstOrDefault();
             }
+
+            if (index >= FileInfos.Count())
+            {
+                index = FileInfos.Count() - 1;
+            }
+            if (FileInfos.Count() > 0)
+            {
+                CurrentFileInfo = FileInfos[index];
+            }
+            else
+            {
+                CurrentFileInfo = null;
+            }
+
             UpdateImage();
             Changed();
         }
 
         public void NextImage()
         {
-            if (Files.Length > 0) // Is there even an image?
+            if (FileInfos.Count() > 0) // Is there even an image?
             {
-                CurrentFile++;
-                while (CurrentFile >= Files.Length)
+                int index = FileInfos.FindIndex(x => x == CurrentFileInfo);
+                index++;
+                while (index >= FileInfos.Count())
                 {
-                    CurrentFile -= Files.Length;
+                    index -= FileInfos.Count();
                 }
+                CurrentFileInfo = FileInfos[index];
+
                 UpdateImage();
                 Changed();
             }
@@ -133,13 +148,16 @@ namespace Slideshow
 
         public void PrevImage()
         {
-            if (Files.Length > 0) // Is there even an image?
+            if (FileInfos.Count() > 0) // Is there even an image?
             {
-                CurrentFile--;
-                while (CurrentFile < 0)
+                int index = FileInfos.FindIndex(x => x == CurrentFileInfo);
+                index--;
+                while (index < 0)
                 {
-                    CurrentFile += Files.Length;
+                    index += FileInfos.Count();
                 }
+                CurrentFileInfo = FileInfos[index];
+
                 UpdateImage();
                 Changed();
             }
@@ -154,18 +172,8 @@ namespace Slideshow
                 Target.Source = null;
             });
 
-            if (Files.Length > 0) // Is there even an image?
+            if (FileInfos.Count() > 0 && CurrentFileInfo != null) // Is there even an image?
             {
-                // Make sure to point at a picture, no matter what the CurrentFile is 
-                // TODO: fix if two or more files are being deleted
-                if (CurrentFile >= Files.Length)
-                {
-                    CurrentFile = Files.Length - 1;
-                }
-
-                // vs
-
-                CurrentFile = (CurrentFile >= Files.Length) ? (Files.Length - 1) : CurrentFile;
 
                 // Display the image
                 Target.Dispatcher.Invoke(() =>
@@ -175,7 +183,7 @@ namespace Slideshow
                         try
                         {
                             MemoryStream memory = new MemoryStream();
-                            using (FileStream file = File.OpenRead(Files[CurrentFile]))
+                            using (FileStream file = File.OpenRead(CurrentFileInfo.FullName))
                             {
                                 file.CopyTo(memory);
                             }
@@ -187,7 +195,7 @@ namespace Slideshow
                             imageSource.StreamSource = memory;
                             imageSource.EndInit();
 
-                            if(Path.GetExtension(Files[CurrentFile]).ToLower() == ".gif")
+                            if(Path.GetExtension(CurrentFileInfo.Name).ToLower() == ".gif")
                             {
                                 ImageBehavior.SetAnimatedSource(Target, imageSource);
                             }
@@ -223,15 +231,6 @@ namespace Slideshow
 
             // Result
             FileInfos = fileInfos;
-
-            // Result Old
-            List<string> fileList = new List<string>();
-            foreach(FileInfo fileInfo in fileInfos)
-            {
-                fileList.Add(fileInfo.FullName);
-            }
-            string[] fileArray = fileList.ToArray();
-            Files = fileArray;
         }
 
         [SuppressUnmanagedCodeSecurity]

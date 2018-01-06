@@ -45,12 +45,12 @@ namespace Slideshow
         {
             Amount.Dispatcher.Invoke(() =>
             {
-                if (visualImageHandler.Files.Length > 0)
+                if (visualImageHandler.FileInfos.Count() > 0)
                 {
-                    Title = new FileInfo(visualImageHandler.Files[visualImageHandler.CurrentFile]).Name + " - Fullscreen";
-                    Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
-                    ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
-                    ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
+                    Title = visualImageHandler.CurrentFileInfo.Name + " - Fullscreen";
+                    Amount.Content = (visualImageHandler.FileInfos.FindIndex(x => x == visualImageHandler.CurrentFileInfo) + 1) + " / " + visualImageHandler.FileInfos.Count();
+                    ProgressFull.Width = new GridLength(visualImageHandler.FileInfos.FindIndex(x => x == visualImageHandler.CurrentFileInfo), GridUnitType.Star);
+                    ProgressEmpty.Width = new GridLength(visualImageHandler.FileInfos.Count() - visualImageHandler.FileInfos.FindIndex(x => x == visualImageHandler.CurrentFileInfo) - 1, GridUnitType.Star);
                 }
                 else
                 {
@@ -79,9 +79,9 @@ namespace Slideshow
             }
             if (e.Key == Key.Enter)
             {
-                if (visualImageHandler.Files.Length > 0)
+                if (visualImageHandler.FileInfos.Count() > 0)
                 {
-                    new Fullscreen(visualImageHandler.Files[visualImageHandler.CurrentFile]).Show();
+                    new Fullscreen(visualImageHandler.CurrentFileInfo.FullName).Show();
                 }
                 else
                 {
@@ -93,7 +93,7 @@ namespace Slideshow
             {
                 try
                 {
-                    File.Delete(visualImageHandler.Files[visualImageHandler.CurrentFile]);
+                    File.Delete(visualImageHandler.CurrentFileInfo.FullName);
                 }
                 catch
                 {
