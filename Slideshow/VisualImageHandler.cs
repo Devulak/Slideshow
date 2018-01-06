@@ -57,9 +57,6 @@ namespace Slideshow
             watcher.Created += new FileSystemEventHandler(OnUpdate);
             watcher.Deleted += new FileSystemEventHandler(OnDeleted);
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
-            Console.WriteLine(FileInfos.Count());
-            Console.WriteLine(CurrentFileInfo.Name);
-            Console.WriteLine(FileInfos.FindIndex(x => x == CurrentFileInfo));
         }
 
         private void OnRenamed(object source, RenamedEventArgs e)
