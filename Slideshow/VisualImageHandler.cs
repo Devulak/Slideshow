@@ -1,9 +1,10 @@
-﻿using NaturalSort.Extension;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,9 +17,11 @@ namespace Slideshow
 
     class VisualImageHandler
     {
-        public string FileDirectory { get; private set; }
         public string[] Files { get; private set; }
         public int CurrentFile { get; private set; }
+        public DirectoryInfo DirectoryInfo { get; private set; }
+        public List<FileInfo> FileInfos { get; private set; }
+        public FileInfo CurrentFileInfo { get; private set; }
         private Image Target;
 
         public event VisualEventHandler Changed;
@@ -34,26 +37,26 @@ namespace Slideshow
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
             {
                 // Directory
-                FileDirectory = path;
-                Files = GetImageFiles(FileDirectory);
+                DirectoryInfo = new DirectoryInfo(path);
+                UpdateImagePathFiles(DirectoryInfo);
                 CurrentFile = 0;
             }
             else
             {
                 // File
-                FileDirectory = new FileInfo(path).DirectoryName;
-                Files = GetImageFiles(FileDirectory);
+                DirectoryInfo = new FileInfo(path).Directory;
+                UpdateImagePathFiles(DirectoryInfo);
                 CurrentFile = Array.IndexOf(Files, path);
             }
             UpdateImage(); // Update image to the CurrentFile path
 
             FileSystemWatcher watcher = new FileSystemWatcher()
             {
-                Path = FileDirectory,
+                Path = DirectoryInfo.FullName,
                 EnableRaisingEvents = true
             };
             watcher.Created += new FileSystemEventHandler(OnUpdate);
-            watcher.Deleted += new FileSystemEventHandler(OnUpdate);
+            watcher.Deleted += new FileSystemEventHandler(OnDeleted);
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
         }
 
@@ -63,7 +66,7 @@ namespace Slideshow
             // check to see if it's the current file being re-named
             if (file == e.OldFullPath)
             {
-                Files = GetImageFiles(FileDirectory);
+                UpdateImagePathFiles(DirectoryInfo);
                 // Move pointer to the new file location (in the array)
                 CurrentFile = Array.IndexOf(Files, e.FullPath);
             }
@@ -74,10 +77,13 @@ namespace Slideshow
         private void OnUpdate(object source, FileSystemEventArgs e)
         {
             Console.WriteLine(e.FullPath);
-            if (GetImageFiles(FileDirectory).Length > 0 && Files.Length > 0)
+            UpdateImagePathFiles(DirectoryInfo);
+            if (Files.Length > 0 && Files.Length > 0)
             {
                 string file = Files[CurrentFile];
-                Files = GetImageFiles(FileDirectory);
+
+                UpdateImagePathFiles(DirectoryInfo);
+
                 // check to see if the current file is still there
                 if (Files.Contains(file))
                 {
@@ -87,7 +93,7 @@ namespace Slideshow
             }
             else
             {
-                Files = GetImageFiles(FileDirectory);
+                UpdateImagePathFiles(DirectoryInfo);
                 CurrentFile = 0;
             }
             UpdateImage();
@@ -96,21 +102,15 @@ namespace Slideshow
 
         private void OnDeleted(object source, FileSystemEventArgs e)
         {
-            Console.WriteLine(e.FullPath);
-            if (GetImageFiles(FileDirectory).Length > 0 && Files.Length > 0)
+            if (Files.Length > 0)
             {
-                string file = Files[CurrentFile];
-                Files = GetImageFiles(FileDirectory);
-                // check to see if the current file is still there
-                if (Files.Contains(file))
-                {
-                    // Move pointer to the new file location (in the array)
-                    CurrentFile = Array.IndexOf(Files, file);
-                }
+                List<string> list = new List<string>(Files);
+                list.Remove(e.FullPath);
+                Files = list.ToArray();
             }
             else
             {
-                Files = GetImageFiles(FileDirectory);
+                UpdateImagePathFiles(DirectoryInfo);
                 CurrentFile = 0;
             }
             UpdateImage();
@@ -151,6 +151,7 @@ namespace Slideshow
             Target.Dispatcher.Invoke(() =>
             {
                 ImageBehavior.SetAnimatedSource(Target, null);
+                Target.Source = null;
             });
 
             if (Files.Length > 0) // Is there even an image?
@@ -186,26 +187,74 @@ namespace Slideshow
                             imageSource.StreamSource = memory;
                             imageSource.EndInit();
 
-                            ImageBehavior.SetAnimatedSource(Target, imageSource);
+                            if(Path.GetExtension(Files[CurrentFile]).ToLower() == ".gif")
+                            {
+                                ImageBehavior.SetAnimatedSource(Target, imageSource);
+                            }
+                            else
+                            {
+                                Target.Source = imageSource;
+                            }
+                            
                             break;
                         }
                         catch
                         {
-
+                            break;
                         }
                     }
                 });
             }
         }
 
-        private string[] GetImageFiles(string path)
+        private void UpdateImagePathFiles(DirectoryInfo directoryInfo)
         {
-            List<string> extensions = new List<string> { ".jpeg", ".jpg", ".gif", ".png" };
-            IEnumerable<String> files = Directory.GetFiles(path).Where(s => extensions.Contains(Path.GetExtension(s)));
-            string[] fileArray = files.ToArray();
-            fileArray = fileArray.OrderBy(x => x, StringComparer.OrdinalIgnoreCase.WithNaturalSort()).ToArray();
-            return fileArray;
-            // return list.toArray().Length == 0 ? null : list.toArray();
+            List<FileInfo> fileInfos = directoryInfo.GetFiles().ToList();
+
+            // Remove anything not an image
+            List<string> extensions = new List<string>() { ".jpeg", ".jpg", ".gif", ".png" };
+            fileInfos = fileInfos.Where(s => extensions.Contains(Path.GetExtension(s.Name).ToLower())).ToList();
+
+            // Sort it naturally
+            // Hack, very poor performance, but it works for now.. 
+            NaturalFileInfoNameComparer comparer = new NaturalFileInfoNameComparer();
+            fileInfos.Sort(comparer);
+            //fileInfos.Sort(SafeNativeMethods.StrCmpLogicalW);
+
+            // Result
+            FileInfos = fileInfos;
+
+            // Result Old
+            List<string> fileList = new List<string>();
+            foreach(FileInfo fileInfo in fileInfos)
+            {
+                fileList.Add(fileInfo.FullName);
+            }
+            string[] fileArray = fileList.ToArray();
+            Files = fileArray;
+        }
+
+        [SuppressUnmanagedCodeSecurity]
+        internal static class SafeNativeMethods
+        {
+            [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+            public static extern int StrCmpLogicalW(string psz1, string psz2);
+        }
+
+        public sealed class NaturalStringComparer : IComparer<string>
+        {
+            public int Compare(string a, string b)
+            {
+                return SafeNativeMethods.StrCmpLogicalW(a, b);
+            }
+        }
+
+        public sealed class NaturalFileInfoNameComparer : IComparer<FileInfo>
+        {
+            public int Compare(FileInfo a, FileInfo b)
+            {
+                return SafeNativeMethods.StrCmpLogicalW(a.Name, b.Name);
+            }
         }
     }
 }

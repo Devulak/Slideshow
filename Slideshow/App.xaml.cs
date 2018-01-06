@@ -23,7 +23,7 @@ namespace Slideshow
             // For debugging, reset the user input
             if (Debugger.IsAttached)
             {
-                Slideshow.Properties.Settings.Default.Reset();
+                //Slideshow.Properties.Settings.Default.Reset();
                 path = @"C:\Users\ZeroXitreo\Documents\GitHub\Slideshow\Slideshow\bin\Debug";
             }
 

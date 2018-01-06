@@ -1,5 +1,4 @@
-﻿using NaturalSort.Extension;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,6 +19,20 @@ namespace Slideshow
         public Dashboard(string fullPath)
         {
             InitializeComponent();
+            
+            if (Properties.Settings.Default.WindowCustomized)
+            {
+                Width = Properties.Settings.Default.WindowWidth;
+                Height = Properties.Settings.Default.WindowHeight;
+                Left = Properties.Settings.Default.WindowLeft;
+                Top = Properties.Settings.Default.WindowTop;
+
+                // Check for maximized after the movement
+                if (Properties.Settings.Default.WindowMaximized)
+                {
+                    WindowState = WindowState.Maximized;
+                }
+            }
 
             visualImageHandler = new VisualImageHandler(Content, fullPath);
 
@@ -41,7 +54,7 @@ namespace Slideshow
                 }
                 else
                 {
-                    Title = "Fullscreen";
+                    Title = "Slideshow";
                     ErrorMessage.Content = "No files to show";
                     Amount.Content = "0 / 0";
                     ProgressFull.Width = new GridLength(0, GridUnitType.Star);
@@ -54,11 +67,11 @@ namespace Slideshow
         {
             if (e.Key == Key.Right)
             {
-                visualImageHandler.NextImage();
+                NextImage(sender, e);
             }
             if (e.Key == Key.Left)
             {
-                visualImageHandler.PrevImage();
+                PrevImage(sender, e);
             }
             if (e.Key == Key.Escape)
             {
@@ -72,7 +85,7 @@ namespace Slideshow
                 }
                 else
                 {
-                    new Fullscreen(visualImageHandler.FileDirectory).Show();
+                    new Fullscreen(visualImageHandler.DirectoryInfo.FullName).Show();
                 }
                 Close();
             }
@@ -89,6 +102,16 @@ namespace Slideshow
             }
         }
 
+        private void NextImage(object sender, RoutedEventArgs e)
+        {
+            visualImageHandler.NextImage();
+        }
+
+        private void PrevImage(object sender, RoutedEventArgs e)
+        {
+            visualImageHandler.PrevImage();
+        }
+
         private void OpenAbout(object sender, RoutedEventArgs e)
         {
             About about = new About();
@@ -101,6 +124,50 @@ namespace Slideshow
             Settings settings = new Settings();
             settings.Owner = this;
             settings.ShowDialog();
+        }
+
+        private void WindowSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Fullscreen checkup
+            if (WindowState == WindowState.Maximized)
+            {
+                Properties.Settings.Default.WindowMaximized = true;
+            }
+            else
+            {
+                Properties.Settings.Default.WindowMaximized = false;
+            }
+
+            // Size checkup
+            if (Properties.Settings.Default.WindowMaximized == false)
+            {
+                Properties.Settings.Default.WindowWidth = Width;
+                Properties.Settings.Default.WindowHeight = Height;
+            }
+
+            Properties.Settings.Default.WindowCustomized = true;
+            Properties.Settings.Default.Save();
+        }
+
+        private void WindowLocationChanged(object sender, EventArgs e)
+        {
+            // Position checkup
+            if (Properties.Settings.Default.WindowMaximized == false)
+            {
+                Properties.Settings.Default.WindowLeft = Left;
+                Properties.Settings.Default.WindowTop = Top;
+            }
+
+            Properties.Settings.Default.WindowCustomized = true;
+            Properties.Settings.Default.Save();
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            // Save preferences
+
+
+            base.OnClosing(e);
         }
 
         private void StartView()

@@ -75,7 +75,7 @@ namespace Slideshow
                 }
                 else
                 {
-                    new Dashboard(visualImageHandler.FileDirectory).Show();
+                    new Dashboard(visualImageHandler.DirectoryInfo.FullName).Show();
                 }
                 Close();
             }

@@ -1,7 +1,11 @@
 ﻿<Window x:Class="Slideshow.Dashboard"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        KeyDown="Shortcuts">
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
+        gif:ImageBehavior.AnimateInDesignMode="True"
+        KeyDown="Shortcuts"
+        SizeChanged="WindowSizeChanged"
+        LocationChanged="WindowLocationChanged">
     <Grid>
         <Rectangle Fill="#121212"/>
         <Label Name="ErrorMessage" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -13,7 +17,11 @@
             </Grid.ColumnDefinitions>
             <Rectangle Fill="#33FFFFFF"/>
         </Grid>
-        <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" />
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" Orientation="Horizontal">
+            <Button Style="{DynamicResource ButtonCover}" Content="&lt;" Click="PrevImage" />
+            <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" Margin="10,0" />
+            <Button Style="{DynamicResource ButtonCover}" Content="&gt;" Click="NextImage" />
+        </StackPanel>
         <Button Style="{DynamicResource ButtonCover}" Content="About" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenAbout"/>
         <Button Style="{DynamicResource ButtonCover}" Content="Settings" Margin="0,45,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenSettings"/>
     </Grid>
