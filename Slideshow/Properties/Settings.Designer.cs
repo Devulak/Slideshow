@@ -130,5 +130,17 @@ namespace Slideshow.Properties {
                 this["Location"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Hierarchy {
+            get {
+                return ((bool)(this["Hierarchy"]));
+            }
+            set {
+                this["Hierarchy"] = value;
+            }
+        }
     }
 }

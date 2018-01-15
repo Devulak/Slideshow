@@ -17,16 +17,23 @@ namespace Slideshow
 
     class VisualImageHandler
     {
+        private static Random rng = new Random();
         public DirectoryInfo DirectoryInfo { get; private set; }
         public List<FileInfo> FileInfos { get; private set; }
         public FileInfo CurrentFileInfo { get; private set; }
         private Image Target;
+        public bool IncludeSubdir { get; private set; }
+        public bool Randomize { get; private set; }
 
         public event VisualEventHandler Changed;
 
         public VisualImageHandler(Image target, string path)
         {
             Target = target;
+
+            Randomize = false;
+            IncludeSubdir = false;
+            FileInfos = new List<FileInfo>();
 
             // get the file attributes for file or directory
             FileAttributes attr = File.GetAttributes(path);
@@ -36,7 +43,7 @@ namespace Slideshow
             {
                 // Directory
                 DirectoryInfo = new DirectoryInfo(path);
-                UpdateImagePathFiles(DirectoryInfo);
+                UpdateImagePathFiles();
                 CurrentFileInfo = FileInfos.FirstOrDefault();
             }
             else // It's a file!
@@ -44,7 +51,7 @@ namespace Slideshow
                 // File
                 CurrentFileInfo = new FileInfo(path);
                 DirectoryInfo = CurrentFileInfo.Directory;
-                UpdateImagePathFiles(DirectoryInfo);
+                UpdateImagePathFiles();
                 CurrentFileInfo = FileInfos.Find(x => x.FullName == CurrentFileInfo.FullName); // Makes sure it points as the actual object in the list
             }
             UpdateImage(); // Update image to the CurrentFile path
@@ -52,32 +59,91 @@ namespace Slideshow
             FileSystemWatcher watcher = new FileSystemWatcher()
             {
                 Path = DirectoryInfo.FullName,
+                // IncludeSubdirectories = true,
                 EnableRaisingEvents = true
             };
-            watcher.Created += new FileSystemEventHandler(OnUpdate);
             watcher.Deleted += new FileSystemEventHandler(OnDeleted);
-            watcher.Renamed += new RenamedEventHandler(OnRenamed);
+            // watcher.Renamed += new RenamedEventHandler(OnRenamed);
+            // watcher.Created += new FileSystemEventHandler(OnCreated);
+        }
+
+        private void OnDeleted(object source, FileSystemEventArgs e)
+        {
+            int index = FileInfos.FindIndex(x => x == CurrentFileInfo); // Get the index of the current file being displayed (-1 if not found [no files])
+
+            // Try and find the item in the list, if it's there, remote it, if not, continue
+            FileInfo fi = FileInfos.Find(x => x.FullName == e.FullPath);
+            FileInfos.Remove(fi);
+
+            if (!FileInfos.Contains(CurrentFileInfo)) // is the selected file removed? If not, just continue the day
+            {
+                if (index >= FileInfos.Count()) // is the index above what's suppose to be?
+                {
+                    index = FileInfos.Count() - 1; // Move it down a Markus Persson (Notch)
+                }
+
+                if (FileInfos.Count() > 0) // Is there still items in the list?
+                {
+                    CurrentFileInfo = FileInfos[index]; // Select that file
+                }
+                else // No items in the list
+                {
+                    CurrentFileInfo = null; // Select nothing for the current file info
+                }
+
+                UpdateImage(); // update only if it's a new file
+            }
+
+            Changed(); // Something changed! (Removed a file!)
         }
 
         private void OnRenamed(object source, RenamedEventArgs e)
         {
+            FileInfo fi = FileInfos.Find(x => x.FullName == e.OldFullPath); // Get the file being renamed
+
+            if (fi != null) // Is the file being enamed is part of the list?
+            {
+
+            }
+
             // check to see if it's the current file being re-named
             if (CurrentFileInfo.FullName == e.OldFullPath)
             {
-                UpdateImagePathFiles(DirectoryInfo);
+                UpdateImagePathFiles();
                 // Move pointer to the new file location (in the array)
                 CurrentFileInfo = FileInfos.Find(x => x.FullName == e.FullPath);
             }
             UpdateImage();
-            Changed();
+            Changed(); // call event changed
         }
 
-        private void OnUpdate(object source, FileSystemEventArgs e)
+        public void IncludeSubdirectories(bool answer)
         {
-            UpdateImagePathFiles(DirectoryInfo);
+            if (IncludeSubdir != answer)
+            {
+                IncludeSubdir = answer;
+                UpdateImagePathFiles();
+                UpdateImage();
+                Changed();
+            }
+        }
+
+        public void ShuffleDirectory(bool answer)
+        {
+            if(Randomize != answer)
+            {
+                Randomize = answer;
+                SortFileInfos();
+                Changed();
+            }
+        }
+
+        private void OnCreated(object source, FileSystemEventArgs e)
+        {
+            UpdateImagePathFiles();
             if (FileInfos.Count() > 0)
             {
-                UpdateImagePathFiles(DirectoryInfo);
+                UpdateImagePathFiles();
 
                 // check to see if the current file is still there
                 if (FileInfos.Find(x => x.FullName == e.FullPath) != null)
@@ -88,40 +154,9 @@ namespace Slideshow
             }
             else
             {
-                UpdateImagePathFiles(DirectoryInfo);
+                UpdateImagePathFiles();
                 CurrentFileInfo = FileInfos.FirstOrDefault();
             }
-            UpdateImage();
-            Changed();
-        }
-
-        private void OnDeleted(object source, FileSystemEventArgs e)
-        {
-            int index = FileInfos.FindIndex(x => x == CurrentFileInfo);
-            if (FileInfos.Count() > 0)
-            {
-                FileInfo fi = FileInfos.Find(x => x.FullName == e.FullPath);
-                FileInfos.Remove(fi);
-            }
-            else
-            {
-                UpdateImagePathFiles(DirectoryInfo);
-                CurrentFileInfo = FileInfos.FirstOrDefault();
-            }
-
-            if (index >= FileInfos.Count())
-            {
-                index = FileInfos.Count() - 1;
-            }
-            if (FileInfos.Count() > 0)
-            {
-                CurrentFileInfo = FileInfos[index];
-            }
-            else
-            {
-                CurrentFileInfo = null;
-            }
-
             UpdateImage();
             Changed();
         }
@@ -212,22 +247,62 @@ namespace Slideshow
             }
         }
 
-        private void UpdateImagePathFiles(DirectoryInfo directoryInfo)
+        private void UpdateImagePathFiles()
         {
-            List<FileInfo> fileInfos = directoryInfo.GetFiles().ToList();
+            List<FileInfo> fileInfos;
+            if (IncludeSubdir)
+            {
+                fileInfos = DirectoryInfo.GetFiles("*", SearchOption.AllDirectories).ToList();
+            }
+            else
+            {
+                fileInfos = DirectoryInfo.GetFiles().ToList();
+            }
 
             // Remove anything not an image
             List<string> extensions = new List<string>() { ".jpeg", ".jpg", ".gif", ".png" };
-            fileInfos = fileInfos.Where(s => extensions.Contains(Path.GetExtension(s.Name).ToLower())).ToList();
+            fileInfos = fileInfos.Where(s => extensions.Contains(Path.GetExtension(s.Name).ToLower())).ToList(); // have a complete list of all the images
 
-            // Sort it naturally
-            // Hack, very poor performance, but it works for now.. 
-            NaturalFileInfoNameComparer comparer = new NaturalFileInfoNameComparer();
-            fileInfos.Sort(comparer);
-            //fileInfos.Sort(SafeNativeMethods.StrCmpLogicalW);
+            // Put old pointers into the new list
+            /*foreach (FileInfo fileInfo in FileInfos)
+            {
+                int index = fileInfos.FindIndex(x => x.FullName == fileInfo.FullName);
+                if (index >= 0)
+                {
+                    fileInfos[index] = fileInfo;
+                }
+            }*/
+
+            // Set the current file info to the corret one in the new list
+            if(CurrentFileInfo != null && fileInfos.Exists(x => x.FullName == CurrentFileInfo.FullName))
+            {
+                CurrentFileInfo = fileInfos.Find(x => x.FullName == CurrentFileInfo.FullName);
+            }
+            else // no file was actually found, reset!
+            {
+                CurrentFileInfo = fileInfos.FirstOrDefault();
+            }
 
             // Result
             FileInfos = fileInfos;
+
+            SortFileInfos();
+        }
+
+        private void SortFileInfos()
+        {
+            // Sort current List
+            if (Randomize)
+            {
+                FileInfos.Shuffle();
+            }
+            else
+            {
+                // Sort it naturally
+                NaturalFileInfoNameComparer comparer = new NaturalFileInfoNameComparer();
+                FileInfos.Sort(comparer);
+                //fileInfos.Sort(SafeNativeMethods.StrCmpLogicalW);
+            }
         }
 
         [SuppressUnmanagedCodeSecurity]
@@ -249,7 +324,7 @@ namespace Slideshow
         {
             public int Compare(FileInfo a, FileInfo b)
             {
-                return SafeNativeMethods.StrCmpLogicalW(a.Name, b.Name);
+                return SafeNativeMethods.StrCmpLogicalW(a.FullName, b.FullName);
             }
         }
     }

@@ -39,6 +39,10 @@ namespace Slideshow
             // add eventhandler
             visualImageHandler.Changed += new VisualEventHandler(OnChange);
             OnChange(); // Call to get initial values
+
+            // set the properties
+            visualImageHandler.ShuffleDirectory(Properties.Settings.Default.Randomized);
+            visualImageHandler.IncludeSubdirectories(Properties.Settings.Default.Hierarchy);
         }
 
         private void OnChange()
@@ -124,6 +128,8 @@ namespace Slideshow
             Settings settings = new Settings();
             settings.Owner = this;
             settings.ShowDialog();
+            visualImageHandler.ShuffleDirectory(Properties.Settings.Default.Randomized);
+            visualImageHandler.IncludeSubdirectories(Properties.Settings.Default.Hierarchy);
         }
 
         private void WindowSizeChanged(object sender, SizeChangedEventArgs e)

@@ -22,6 +22,40 @@ namespace Slideshow
         public Settings()
         {
             InitializeComponent();
+            Randomize.IsChecked = Properties.Settings.Default.Randomized;
+            IncludeSub.IsChecked = Properties.Settings.Default.Hierarchy;
+        }
+
+        private void Shortcuts(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                Close();
+            }
+        }
+
+        private void RandomizeEnable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Randomized = true;
+            Properties.Settings.Default.Save();
+        }
+
+        private void RandomizeDisable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Randomized = false;
+            Properties.Settings.Default.Save();
+        }
+
+        private void IncludeSubEnable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Hierarchy = true;
+            Properties.Settings.Default.Save();
+        }
+
+        private void IncludeSubDisable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Hierarchy = false;
+            Properties.Settings.Default.Save();
         }
     }
 }

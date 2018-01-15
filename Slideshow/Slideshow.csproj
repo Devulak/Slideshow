@@ -59,6 +59,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ShortcutWindow.cs" />
+    <Compile Include="ListExtension.cs" />
     <Compile Include="VisualImageHandler.cs" />
     <Page Include="About.xaml">
       <SubType>Designer</SubType>

@@ -24,7 +24,7 @@ namespace Slideshow
             if (Debugger.IsAttached)
             {
                 //Slideshow.Properties.Settings.Default.Reset();
-                path = @"C:\Users\ZeroXitreo\Documents\GitHub\Slideshow\Slideshow\bin\Debug";
+                path = AppDomain.CurrentDomain.BaseDirectory;
             }
 
             // TODO: make sure the class can't get initialized without either of the following:
