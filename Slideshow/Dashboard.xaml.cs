@@ -13,13 +13,28 @@ namespace Slideshow
     /// </summary>
     public partial class Dashboard : Window
     {
-        private VisualImageHandler visualImageHandler;
+        private VisualImageHandler VisualImageHandler;
 
         // selected image
         public Dashboard(string fullPath)
         {
             InitializeComponent();
-            
+            VisualImageHandler = new VisualImageHandler(Content, fullPath);
+            Initialize();
+        }
+
+        // selected image
+        public Dashboard(VisualImageHandler visualImageHandler)
+        {
+            InitializeComponent();
+            VisualImageHandler = visualImageHandler;
+            VisualImageHandler.Target = Content;
+            VisualImageHandler.UpdateImage();
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             if (Properties.Settings.Default.WindowCustomized)
             {
                 Width = Properties.Settings.Default.WindowWidth;
@@ -34,23 +49,29 @@ namespace Slideshow
                 }
             }
 
-            visualImageHandler = new VisualImageHandler(Content, fullPath);
 
             // add eventhandler
-            visualImageHandler.Changed += new VisualEventHandler(OnChange);
+            VisualImageHandler.Changed += new VisualEventHandler(OnChange);
             OnChange(); // Call to get initial values
+
+            // set the properties
+            VisualImageHandler.ShuffleDirectory(Properties.Settings.Default.Randomized);
+            VisualImageHandler.IncludeSubdirectories(Properties.Settings.Default.Hierarchy);
+
+            Randomize.IsChecked = Properties.Settings.Default.Randomized;
+            IncludeSub.IsChecked = Properties.Settings.Default.Hierarchy;
         }
 
         private void OnChange()
         {
             Amount.Dispatcher.Invoke(() =>
             {
-                if (visualImageHandler.Files.Length > 0)
+                if (VisualImageHandler.FileInfos.Count() > 0)
                 {
-                    Title = new FileInfo(visualImageHandler.Files[visualImageHandler.CurrentFile]).Name + " - Fullscreen";
-                    Amount.Content = (visualImageHandler.CurrentFile + 1) + " / " + visualImageHandler.Files.Length;
-                    ProgressFull.Width = new GridLength(visualImageHandler.CurrentFile, GridUnitType.Star);
-                    ProgressEmpty.Width = new GridLength(visualImageHandler.Files.Length - visualImageHandler.CurrentFile - 1, GridUnitType.Star);
+                    Title = VisualImageHandler.CurrentFileInfo.Name + " - Fullscreen";
+                    Amount.Content = (VisualImageHandler.FileInfos.FindIndex(x => x == VisualImageHandler.CurrentFileInfo) + 1) + " / " + VisualImageHandler.FileInfos.Count();
+                    ProgressFull.Width = new GridLength(VisualImageHandler.FileInfos.FindIndex(x => x == VisualImageHandler.CurrentFileInfo), GridUnitType.Star);
+                    ProgressEmpty.Width = new GridLength(VisualImageHandler.FileInfos.Count() - VisualImageHandler.FileInfos.FindIndex(x => x == VisualImageHandler.CurrentFileInfo) - 1, GridUnitType.Star);
                 }
                 else
                 {
@@ -79,21 +100,14 @@ namespace Slideshow
             }
             if (e.Key == Key.Enter)
             {
-                if (visualImageHandler.Files.Length > 0)
-                {
-                    new Fullscreen(visualImageHandler.Files[visualImageHandler.CurrentFile]).Show();
-                }
-                else
-                {
-                    new Fullscreen(visualImageHandler.DirectoryInfo.FullName).Show();
-                }
+                new Fullscreen(VisualImageHandler).Show();
                 Close();
             }
             if (e.Key == Key.Delete)
             {
                 try
                 {
-                    File.Delete(visualImageHandler.Files[visualImageHandler.CurrentFile]);
+                    File.Delete(VisualImageHandler.CurrentFileInfo.FullName);
                 }
                 catch
                 {
@@ -104,12 +118,12 @@ namespace Slideshow
 
         private void NextImage(object sender, RoutedEventArgs e)
         {
-            visualImageHandler.NextImage();
+            VisualImageHandler.NextImage();
         }
 
         private void PrevImage(object sender, RoutedEventArgs e)
         {
-            visualImageHandler.PrevImage();
+            VisualImageHandler.PrevImage();
         }
 
         private void OpenAbout(object sender, RoutedEventArgs e)
@@ -117,13 +131,6 @@ namespace Slideshow
             About about = new About();
             about.Owner = this;
             about.ShowDialog();
-        }
-
-        private void OpenSettings(object sender, RoutedEventArgs e)
-        {
-            Settings settings = new Settings();
-            settings.Owner = this;
-            settings.ShowDialog();
         }
 
         private void WindowSizeChanged(object sender, SizeChangedEventArgs e)
@@ -162,12 +169,32 @@ namespace Slideshow
             Properties.Settings.Default.Save();
         }
 
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        private void RandomizeEnable(object sender, RoutedEventArgs e)
         {
-            // Save preferences
+            Properties.Settings.Default.Randomized = true;
+            Properties.Settings.Default.Save();
+            VisualImageHandler.ShuffleDirectory(Properties.Settings.Default.Randomized);
+        }
 
+        private void RandomizeDisable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Randomized = false;
+            Properties.Settings.Default.Save();
+            VisualImageHandler.ShuffleDirectory(Properties.Settings.Default.Randomized);
+        }
 
-            base.OnClosing(e);
+        private void IncludeSubEnable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Hierarchy = true;
+            Properties.Settings.Default.Save();
+            VisualImageHandler.IncludeSubdirectories(Properties.Settings.Default.Hierarchy);
+        }
+
+        private void IncludeSubDisable(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Hierarchy = false;
+            Properties.Settings.Default.Save();
+            VisualImageHandler.IncludeSubdirectories(Properties.Settings.Default.Hierarchy);
         }
 
         private void StartView()
@@ -206,21 +233,5 @@ namespace Slideshow
 
             Close();*/
         }
-
-        // Shuffle a string array
-        // TODO: change it to List<string>
-        /*private string[] Shuffle(string[] files)
-        {
-            Random rnd = new Random();
-
-            for (int i = 0; i < files.Length; i++)
-            {
-                int ticket = rnd.Next(files.Length);
-                string fileHolder = files[i]; // Hold the values in [i] before removing it
-                files[i] = files[ticket]; // Replace [i] with the lottery [ticket]
-                files[ticket] = fileHolder; // Replace [ticket] with the fileHolder which held the [i] value
-            }
-            return files;
-        }*/
     }
 }

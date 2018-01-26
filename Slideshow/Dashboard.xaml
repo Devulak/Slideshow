@@ -17,13 +17,16 @@
             </Grid.ColumnDefinitions>
             <Rectangle Fill="#33FFFFFF"/>
         </Grid>
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,0,0" Orientation="Horizontal">
+            <CheckBox Name="Randomize" Content="Shuffle" Margin="0,0,10,0" Checked="RandomizeEnable" Unchecked="RandomizeDisable" />
+            <CheckBox Name="IncludeSub" Content="Sub-directories" Margin="0,0,10,0" Checked="IncludeSubEnable" Unchecked="IncludeSubDisable" />
+            <Button Style="{DynamicResource ButtonCover}" Content="?" Margin="0,0,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenAbout"/>
+        </StackPanel>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" Orientation="Horizontal">
             <Button Style="{DynamicResource ButtonCover}" Content="&lt;" Click="PrevImage" />
             <Label Style="{DynamicResource ElementCover}" Name="Amount" Content="#AMOUNT" Margin="10,0" />
             <Button Style="{DynamicResource ButtonCover}" Content="&gt;" Click="NextImage" />
         </StackPanel>
-        <Button Style="{DynamicResource ButtonCover}" Content="About" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenAbout"/>
-        <Button Style="{DynamicResource ButtonCover}" Content="Settings" Margin="0,45,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Click="OpenSettings"/>
     </Grid>
     <Window.Resources>
         <Style TargetType="Label" x:Key="ElementCover">
@@ -38,6 +41,22 @@
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="BorderBrush" Value="#FF222222" />
             <Setter Property="Padding" Value="5" />
+            <Setter Property="MinWidth" Value="30" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style TargetType="Label" x:Key="Notice">
+            <Setter Property="Foreground" Value="#444" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="20,0,0,0" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#FF121212" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="#FF222222" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="MinWidth" Value="30" />
         </Style>
     </Window.Resources>
 </Window>
