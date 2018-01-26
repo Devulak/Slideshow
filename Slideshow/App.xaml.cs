@@ -32,7 +32,7 @@ namespace Slideshow
             // a path
 
             // Q: What if the files are filtered out? (practically showing 0 files in the dashboard)
-            // A: Right now it should work as a "perfect world", afterwards, the VisualImageHandler should take care of wrongdoings
+            // A: Right now it should work as a "perfect world", afterwards, the ImageHandler should take care of wrongdoings
 
             Dashboard dashboard = new Dashboard(path);
             dashboard.Show();

@@ -5,11 +5,12 @@ namespace Slideshow
 {
     public static class ListExtension
     {
-        private static Random rng = new Random();
-
-        public static void Shuffle<T>(this IList<T> list)
+        public static void Shuffle<T>(this IList<T> list, int seed)
         {
+            Random rng = new Random(seed);
+
             int n = list.Count;
+
             while (n > 1)
             {
                 n--;

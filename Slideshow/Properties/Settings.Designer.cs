@@ -26,12 +26,12 @@ namespace Slideshow.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1000")]
-        public int Timer {
+        public int SlideshowDelay {
             get {
-                return ((int)(this["Timer"]));
+                return ((int)(this["SlideshowDelay"]));
             }
             set {
-                this["Timer"] = value;
+                this["SlideshowDelay"] = value;
             }
         }
         

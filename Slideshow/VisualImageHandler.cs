@@ -15,15 +15,17 @@ namespace Slideshow
 {
     public delegate void VisualEventHandler();
 
-    class VisualImageHandler
+    public class VisualImageHandler
     {
         private static Random rng = new Random();
+        private FileSystemWatcher Watcher;
+        private int Seed;
         public DirectoryInfo DirectoryInfo { get; private set; }
         public List<FileInfo> FileInfos { get; private set; }
         public FileInfo CurrentFileInfo { get; private set; }
-        private Image Target;
         public bool IncludeSubdir { get; private set; }
         public bool Randomize { get; private set; }
+        public Image Target;
 
         public event VisualEventHandler Changed;
 
@@ -56,13 +58,12 @@ namespace Slideshow
             }
             UpdateImage(); // Update image to the CurrentFile path
 
-            FileSystemWatcher watcher = new FileSystemWatcher()
+            Watcher = new FileSystemWatcher()
             {
                 Path = DirectoryInfo.FullName,
-                // IncludeSubdirectories = true,
                 EnableRaisingEvents = true
             };
-            watcher.Deleted += new FileSystemEventHandler(OnDeleted);
+            Watcher.Deleted += new FileSystemEventHandler(OnDeleted);
             // watcher.Renamed += new RenamedEventHandler(OnRenamed);
             // watcher.Created += new FileSystemEventHandler(OnCreated);
         }
@@ -117,27 +118,6 @@ namespace Slideshow
             Changed(); // call event changed
         }
 
-        public void IncludeSubdirectories(bool answer)
-        {
-            if (IncludeSubdir != answer)
-            {
-                IncludeSubdir = answer;
-                UpdateImagePathFiles();
-                UpdateImage();
-                Changed();
-            }
-        }
-
-        public void ShuffleDirectory(bool answer)
-        {
-            if(Randomize != answer)
-            {
-                Randomize = answer;
-                SortFileInfos();
-                Changed();
-            }
-        }
-
         private void OnCreated(object source, FileSystemEventArgs e)
         {
             UpdateImagePathFiles();
@@ -159,6 +139,34 @@ namespace Slideshow
             }
             UpdateImage();
             Changed();
+        }
+
+        public void IncludeSubdirectories(bool answer)
+        {
+            Watcher.IncludeSubdirectories = answer;
+            if (IncludeSubdir != answer)
+            {
+                IncludeSubdir = answer;
+                UpdateImagePathFiles();
+                UpdateImage();
+                Changed();
+            }
+        }
+
+        public void ShuffleDirectory(bool answer)
+        {
+            ShuffleDirectory(answer, rng.Next());
+        }
+
+        public void ShuffleDirectory(bool answer, int seed)
+        {
+            if (Randomize != answer)
+            {
+                Seed = rng.Next();
+                Randomize = answer;
+                SortFileInfos();
+                Changed();
+            }
         }
 
         public void NextImage()
@@ -195,7 +203,7 @@ namespace Slideshow
             }
         }
 
-        private void UpdateImage()
+        public void UpdateImage()
         {
             // Clear canvas
             Target.Dispatcher.Invoke(() =>
@@ -263,16 +271,6 @@ namespace Slideshow
             List<string> extensions = new List<string>() { ".jpeg", ".jpg", ".gif", ".png" };
             fileInfos = fileInfos.Where(s => extensions.Contains(Path.GetExtension(s.Name).ToLower())).ToList(); // have a complete list of all the images
 
-            // Put old pointers into the new list
-            /*foreach (FileInfo fileInfo in FileInfos)
-            {
-                int index = fileInfos.FindIndex(x => x.FullName == fileInfo.FullName);
-                if (index >= 0)
-                {
-                    fileInfos[index] = fileInfo;
-                }
-            }*/
-
             // Set the current file info to the corret one in the new list
             if(CurrentFileInfo != null && fileInfos.Exists(x => x.FullName == CurrentFileInfo.FullName))
             {
@@ -294,7 +292,7 @@ namespace Slideshow
             // Sort current List
             if (Randomize)
             {
-                FileInfos.Shuffle();
+                FileInfos.Shuffle(Seed);
             }
             else
             {
