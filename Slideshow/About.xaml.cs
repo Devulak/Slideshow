@@ -23,5 +23,13 @@ namespace Slideshow
         {
             InitializeComponent();
         }
+
+        private void Shortcuts(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                Close();
+            }
+        }
     }
 }
