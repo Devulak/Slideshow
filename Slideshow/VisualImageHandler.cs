@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WpfAnimatedGif;
 
@@ -235,15 +233,26 @@ namespace Slideshow
                             imageSource.StreamSource = memory;
                             imageSource.EndInit();
 
-                            if(Path.GetExtension(CurrentFileInfo.Name).ToLower() == ".gif")
+                            if (Path.GetExtension(CurrentFileInfo.Name).ToLower() == ".gif")
                             {
                                 ImageBehavior.SetAnimatedSource(Target, imageSource);
                             }
                             else
                             {
-                                Target.Source = imageSource;
+                                // DPI "fix" --> check how fixed this is later
+                                double dpi = 96; // Find a way to get the current screen DPI or let this be, works for now but not sure how general it is
+                                int width = imageSource.PixelWidth;
+                                int height = imageSource.PixelHeight;
+
+                                int stride = width * 4; // 4 bytes per pixel
+                                byte[] pixelData = new byte[stride * height];
+                                imageSource.CopyPixels(pixelData, stride, 0);
+
+                                BitmapSource bmpSource = BitmapSource.Create(width, height, dpi, dpi, PixelFormats.Bgra32, null, pixelData, stride);
+
+                                Target.Source = bmpSource;
                             }
-                            
+
                             break;
                         }
                         catch

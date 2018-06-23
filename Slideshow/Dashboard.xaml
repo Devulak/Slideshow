@@ -9,7 +9,9 @@
     <Grid>
         <Rectangle Fill="#121212"/>
         <Label Name="ErrorMessage" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Image Name="Content"/>
+        <Grid Name="ContentBorder">
+            <Image Name="Content" />
+        </Grid>
         <Grid Height="5" VerticalAlignment="Bottom">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Name="ProgressFull" Width="10*"/>

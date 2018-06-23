@@ -59,6 +59,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ImageManipulation.cs" />
     <Compile Include="ListExtension.cs" />
     <Compile Include="VisualImageHandler.cs" />
     <Page Include="About.xaml">

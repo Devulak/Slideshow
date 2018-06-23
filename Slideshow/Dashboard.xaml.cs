@@ -14,6 +14,7 @@ namespace Slideshow
     public partial class Dashboard : Window
     {
         private VisualImageHandler VisualImageHandler;
+        private ImageManipulation imageManipulation;
 
         // selected image
         public Dashboard(string fullPath)
@@ -60,6 +61,9 @@ namespace Slideshow
 
             Randomize.IsChecked = Properties.Settings.Default.Randomized;
             IncludeSub.IsChecked = Properties.Settings.Default.Hierarchy;
+
+            // Image manipulation, aka zoom and size perfection
+            imageManipulation = new ImageManipulation(Content);
         }
 
         private void OnChange()
