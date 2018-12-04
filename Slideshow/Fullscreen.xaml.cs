@@ -49,7 +49,7 @@ namespace Slideshow
                 if (ImageHandler.FileInfos.Count() > 0)
                 {
                     Title = ImageHandler.CurrentFileInfo.Name + " - Fullscreen";
-                    Amount.Content = (ImageHandler.FileInfos.FindIndex(x => x == ImageHandler.CurrentFileInfo) + 1) + " / " + ImageHandler.FileInfos.Count();
+                    Amount.Content = ImageHandler.FileInfos.FindIndex(x => x == ImageHandler.CurrentFileInfo) + 1 + " / " + ImageHandler.FileInfos.Count();
                     ProgressFull.Width = new GridLength(ImageHandler.FileInfos.FindIndex(x => x == ImageHandler.CurrentFileInfo), GridUnitType.Star);
                     ProgressEmpty.Width = new GridLength(ImageHandler.FileInfos.Count() - ImageHandler.FileInfos.FindIndex(x => x == ImageHandler.CurrentFileInfo) - 1, GridUnitType.Star);
                 }

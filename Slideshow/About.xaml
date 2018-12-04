@@ -6,7 +6,6 @@
         <Rectangle Fill="#121212"/>
         <StackPanel  Margin="10">
             <Image Source="toast.png" Width="128" Height="128" />
-            <Label Content="I made diz" Foreground="white" Padding="0" />
         </StackPanel>
     </Grid>
 </Window>

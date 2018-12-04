@@ -18,7 +18,7 @@ namespace Slideshow
         public ImageManipulation(Image image)
         {
             Target = image;
-            Parent = (FrameworkElement)Target.Parent; // Bold assumption m8, but we'll go with it for now
+            Parent = (FrameworkElement)Target.Parent; // Bold assumption, but we'll go with it for now
 
 
             Target.Stretch = Stretch.None;
@@ -30,7 +30,7 @@ namespace Slideshow
 
         private void Content_SourceUpdated(object sender, DataTransferEventArgs e)
         {
-            Console.WriteLine("WOA");
+            Console.WriteLine("Source Updated");
         }
 
         private void Nani(object sender, SizeChangedEventArgs e)
@@ -39,7 +39,7 @@ namespace Slideshow
             {
                 Target.Stretch = Stretch.Uniform;
 
-                Console.WriteLine("SIZE CHANGED");
+                Console.WriteLine("Size changed");
                 Console.WriteLine(Parent.ActualWidth);
                 Console.WriteLine(Parent.ActualHeight);
                 if (Target.Source.Width <= Parent.ActualWidth && Target.Source.Height <= Parent.ActualHeight) // Is the size within' the borders?
